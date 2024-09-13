@@ -1,117 +1,112 @@
-// pages/index.js
-
+'use client';
 import React from 'react';
 import Link from 'next/link';
-import Navbar from '../compounent/nav'; // Updated path for Navbar component
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { FaRegLightbulb, FaRegClone, FaRobot } from 'react-icons/fa';
+import Navbar from '../components/nav';
+import Footer from '../components/footer';
 
 const HomePage = () => {
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Header Section */}
-      <header>
-        <Navbar />
-      </header>
+    <div className="min-h-screen flex flex-col font-sans text-gray-800 leading-relaxed bg-gradient-to-b from-gray-50 to-white">
+      <Navbar />
 
-      {/* Hero Section */}
-      <main className="flex-grow">
-        <section className="bg-blue-600 text-white py-20 text-center">
-          <h2 className="text-5xl font-bold mb-4">
-            Create a Professional Resume in Minutes
-          </h2>
-          <p className="text-xl mb-8">
-            QuickResume helps you build a job-ready resume effortlessly.
-          </p>
-          <Link
-            href="/start"
-            className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-300"
-          >
-            Get Started
-          </Link>
+      <main className="flex-1">
+        <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-32 px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.div {...fadeIn} className="text-center">
+              <h1 className="text-6xl font-extrabold mb-6 leading-tight">
+                Craft Your Career Story with Precision
+              </h1>
+              <p className="text-2xl mb-10 max-w-3xl mx-auto">
+                QuickResume: Where AI meets design to create resumes that open doors.
+              </p>
+              <Link href="/form" className="inline-block bg-white text-blue-600 py-4 px-10 rounded-full font-bold text-lg transition duration-300 ease-in-out hover:bg-blue-50 hover:shadow-lg transform hover:-translate-y-1">
+                Build Your Resume Now
+              </Link>
+            </motion.div>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+              <path fill="#ffffff" fillOpacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
+          </div>
         </section>
 
-        {/* Features Section */}
-        <section className="container mx-auto py-16 text-center">
-          <h3 className="text-4xl font-bold mb-10 text-gray-800">Features</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="bg-white p-8 shadow-lg rounded-lg">
-              <h4 className="text-2xl font-semibold mb-4">Easy to Use</h4>
-              <p>
-                QuickResume’s interface is simple and intuitive, allowing anyone
-                to create a resume without hassle.
-              </p>
-            </div>
-            <div className="bg-white p-8 shadow-lg rounded-lg">
-              <h4 className="text-2xl font-semibold mb-4">Custom Templates</h4>
-              <p>
-                Choose from a variety of professionally designed resume
-                templates to match your style and industry.
-              </p>
-            </div>
-            <div className="bg-white p-8 shadow-lg rounded-lg">
-              <h4 className="text-2xl font-semibold mb-4">ChatGPT-Powered AI</h4>
-              <p>
-                Let our AI assist in crafting a personalized resume that stands
-                out from the competition.
-              </p>
+        <section className="py-20 px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.h2 {...fadeIn} className="text-4xl font-bold text-center text-gray-800 mb-16">
+              Revolutionize Your Resume Creation
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {[
+                { icon: <FaRegLightbulb className="text-5xl text-blue-500 mb-6" />, title: "Intuitive Design", description: "Our user-friendly interface makes resume creation a breeze, even for beginners." },
+                { icon: <FaRegClone className="text-5xl text-blue-500 mb-6" />, title: "Professional Templates", description: "Choose from a curated selection of ATS-friendly templates tailored for your industry." },
+                { icon: <FaRobot className="text-5xl text-blue-500 mb-6" />, title: "AI-Powered Assistance", description: "Leverage cutting-edge AI to optimize your content and stand out from the crowd." }
+              ].map((feature, index) => (
+                <motion.div 
+                  key={index}
+                  className="bg-white p-8 rounded-xl shadow-lg transition duration-300 ease-in-out hover:shadow-2xl"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  {feature.icon}
+                  <h3 className="text-2xl font-semibold text-gray-800 mb-4">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Testimonials Section */}
-        <section className="bg-gray-200 py-16">
-          <div className="container mx-auto text-center">
-            <h3 className="text-4xl font-bold mb-10 text-gray-800">
-              What Our Users Say
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-white p-8 shadow-lg rounded-lg">
-                <p className="italic">
-                  "QuickResume helped me land my dream job! The templates were
-                  professional and easy to use."
-                </p>
-                <h5 className="text-lg font-bold mt-4">— Jane Doe</h5>
-              </div>
-              <div className="bg-white p-8 shadow-lg rounded-lg">
-                <p className="italic">
-                  "I was able to create a resume in just minutes! This platform
-                  is a game-changer for job seekers."
-                </p>
-                <h5 className="text-lg font-bold mt-4">— John Smith</h5>
-              </div>
-              <div className="bg-white p-8 shadow-lg rounded-lg">
-                <p className="italic">
-                  "The AI-generated content was spot on and really made my
-                  resume shine!"
-                </p>
-                <h5 className="text-lg font-bold mt-4">— Sarah Lee</h5>
-              </div>
+        <section className="py-20 px-4 bg-gray-100">
+          <div className="max-w-6xl mx-auto">
+            <motion.h2 {...fadeIn} className="text-4xl font-bold text-center text-gray-800 mb-16">
+              Success Stories
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {[
+                { name: "Emily Chen", role: "Software Engineer", image: "https://lh5.googleusercontent.com/proxy/VJT2Prq80uIxF50pmyw5hev7yt7mmvhqIKm22QCJD8Am5T9tHFD8a8We-x87QS9V7SaD2M6JtKgo1CzbvVFr_L7qPR9NbcgQi5VEX1U42TWuGIU", quote: "QuickResume's AI suggestions helped me highlight my achievements in a way I never could have on my own." },
+                { name: "Michael Johnson", role: "Marketing Director", image: "https://pbs.twimg.com/profile_images/1544734815710093312/C7N31v3y_400x400.jpg", quote: "The professional templates and easy editing features allowed me to create a standout resume in no time." },
+                { name: "Sarah Thompson", role: "Healthcare Professional", image: "https://images.mubicdn.net/images/cast_member/238853/cache-288553-1512812927/image-w856.jpg", quote: "I was able to tailor my resume for different job applications effortlessly. It's a game-changer!" }
+              ].map((testimonial, index) => (
+                <motion.div 
+                  key={index}
+                  className="bg-white p-8 rounded-xl shadow-lg"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <Image src={testimonial.image} alt={testimonial.name} width={80} height={80} className="rounded-full mx-auto mb-6" />
+                  <p className="italic text-gray-600 mb-6">"{testimonial.quote}"</p>
+                  <p className="font-semibold text-gray-800">{testimonial.name}</p>
+                  <p className="text-blue-500">{testimonial.role}</p>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Call to Action Section */}
-        <section className="bg-blue-600 text-white py-16 text-center">
-          <h3 className="text-4xl font-bold mb-6">Ready to Get Started?</h3>
-          <p className="text-xl mb-8">
-            Join thousands of professionals who have used QuickResume to land
-            their next job.
-          </p>
-          <Link
-            href="/register"
-            className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-300"
-          >
-            Create an Account Now
-          </Link>
+        <section className="py-20 px-4 bg-blue-600 text-white text-center">
+          <div className="max-w-4xl mx-auto">
+            <motion.h2 {...fadeIn} className="text-4xl font-bold mb-6">
+              Ready to Transform Your Career?
+            </motion.h2>
+            <p className="text-xl mb-10">
+              Join thousands of professionals who've accelerated their careers with QuickResume.
+            </p>
+            <Link href="/form2" className="inline-block bg-white text-blue-600 py-4 px-10 rounded-full font-bold text-lg transition duration-300 ease-in-out hover:bg-blue-50 hover:shadow-lg transform hover:-translate-y-1">
+              Get Started for Free
+            </Link>
+          </div>
         </section>
       </main>
 
-      {/* Footer Section */}
-      <footer className="bg-gray-900 text-white py-6">
-        <div className="container mx-auto text-center">
-          <p>&copy; 2024 QuickResume. All rights reserved.</p>
-          <p className="mt-2">Contact us at support@quickresume.com</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

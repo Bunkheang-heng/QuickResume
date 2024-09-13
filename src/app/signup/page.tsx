@@ -3,18 +3,59 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FaGoogle, FaFacebookF } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
+import { FaGoogle } from 'react-icons/fa';
+import { auth, db } from '../../firebase';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SignupPage: React.FC = () => {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const router = useRouter();
 
-  const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Here, you would typically handle integration with your authentication service
-    console.log(`Name: ${name}, Email: ${email}, Password: ${password}`);
-    alert('Signup functionality not implemented yet');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      await setDoc(doc(db, 'users', user.uid), {
+        name,
+        email,
+        role: 'user', 
+      });
+
+      toast.success('User signed up successfully');
+      router.push('/form');
+    } catch (error) {
+      console.error('Error signing up:', error);
+      toast.error('Failed to sign up. Please try again.');
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Store user data in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        name: user.displayName,
+        email: user.email,
+        role: 'user', // Adding role as 'user'
+      });
+
+      toast.success('User signed up with Google successfully');
+      router.push('/form');
+    } catch (error) {
+      console.error('Error signing up with Google:', error);
+      toast.error('Failed to sign up with Google. Please try again.');
+    }
   };
 
   return (
@@ -87,16 +128,10 @@ const SignupPage: React.FC = () => {
         </form>
         <div className="mt-6 grid grid-cols-1 gap-3">
           <button
-            onClick={() => console.log('Sign up with Google')}
+            onClick={handleGoogleSignup}
             className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <FaGoogle className="text-xl mr-2" /> Sign up with Google
-          </button>
-          <button
-            onClick={() => console.log('Sign up with Facebook')}
-            className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600"
-          >
-            <FaFacebookF className="text-xl mr-2" /> Sign up with Facebook
           </button>
         </div>
         <p className="mt-4 text-center text-sm text-gray-600">
@@ -108,6 +143,7 @@ const SignupPage: React.FC = () => {
           </Link>
         </p>
       </div>
+      <ToastContainer />
     </div>
   );
 };

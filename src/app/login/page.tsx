@@ -3,15 +3,48 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { FaFacebookF, FaGoogle } from 'react-icons/fa';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
+import { auth } from '../../firebase'; // Ensure you have this file set up with Firebase configuration
+import { useRouter } from 'next/navigation';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Normally handle login here
-    alert('Login functionality not implemented');
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/form'); // Redirect to dashboard after successful login
+    } catch (error) {
+      setError('Failed to log in. Please check your credentials.');
+      console.error(error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push('/admin');
+    } catch (error) {
+      setError('Failed to log in with Google.');
+      console.error(error);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    const provider = new FacebookAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push('/admin');
+    } catch (error) {
+      setError('Failed to log in with Facebook.');
+      console.error(error);
+    }
   };
 
   return (
@@ -25,6 +58,7 @@ const LoginPage: React.FC = () => {
             Please sign in to your account
           </p>
         </div>
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <input type="hidden" name="remember" defaultValue="true" />
           <div className="rounded-md shadow-sm -space-y-px">
@@ -80,6 +114,40 @@ const LoginPage: React.FC = () => {
             </button>
           </div>
         </form>
+
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <div>
+              <button
+                onClick={handleGoogleLogin}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <span className="sr-only">Sign in with Google</span>
+                <FaGoogle className="text-xl mr-2" />
+              </button>
+            </div>
+            <div>
+              <button
+                onClick={handleFacebookLogin}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <span className="sr-only">Sign in with Facebook</span>
+                <FaFacebookF className="text-xl mr-2" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
