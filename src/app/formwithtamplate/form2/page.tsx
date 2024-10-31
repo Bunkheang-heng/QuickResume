@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
-import Navbar from "@/components/nav"; // Assuming you have a Navbar component
-import Footer from "@/components/footer"; // Assuming you have a Footer component
+import Navbar from "@/components/nav";
+import Footer from "@/components/footer";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "@/firebase"; // Assuming you have firebase config in this file
+import { db } from "@/firebase";
 
 export default function ResumePage() {
+  // Form data state
   const [formData, setFormData] = useState({
     fullName: "",
     profession: "",
@@ -23,29 +24,40 @@ export default function ResumePage() {
     education: [{ degree: "", school: "", dates: "" }],
     languages: [{ language: "", proficiency: "" }],
     image: null as File | null,
-    resumeTitle: "", // New field for resume title
+    resumeTitle: "",
   });
 
+  // PDF and form validation states
   const [pdfUrl, setPdfUrl] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
 
+  // Check form validity
   useEffect(() => {
     const checkFormValidity = () => {
       const requiredFields = [
         'fullName', 'profession', 'summary', 'email', 'phone', 'location'
       ];
+      
       const isValid = requiredFields.every(field => (formData as any)[field].trim() !== '') &&
         formData.experience.every(exp => exp.title && exp.company && exp.dates && exp.description) &&
         formData.skills.length > 0 &&
         formData.education.every(edu => edu.degree && edu.school && edu.dates);
+      
       setIsFormValid(isValid);
     };
 
     checkFormValidity();
   }, [formData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index?: number, field?: keyof typeof formData, subField?: string) => {
+  // Form field handlers
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, 
+    index?: number, 
+    field?: keyof typeof formData, 
+    subField?: string
+  ) => {
     const { name, value } = e.target;
+    
     if (field && subField) {
       setFormData((prevState) => ({
         ...prevState,
@@ -67,20 +79,17 @@ export default function ResumePage() {
   };
 
   const handleAddField = (field: keyof typeof formData) => {
+    const newFieldTemplates = {
+      experience: { title: "", company: "", dates: "", description: "" },
+      skills: "",
+      certificates: { title: "", issuedBy: "", date: "" },
+      education: { degree: "", school: "", dates: "" },
+      languages: { language: "", proficiency: "" }
+    };
+
     setFormData((prevState) => ({
       ...prevState,
-      [field]: [
-        ...(prevState[field] as any[]),
-        field === "experience"
-          ? { title: "", company: "", dates: "", description: "" }
-          : field === "skills"
-          ? ""
-          : field === "certificates"
-          ? { title: "", issuedBy: "", date: "" }
-          : field === "education"
-          ? { degree: "", school: "", dates: "" }
-          : { language: "", proficiency: "" },
-      ],
+      [field]: [...(prevState[field] as any[]), newFieldTemplates[field as keyof typeof newFieldTemplates]]
     }));
   };
 
@@ -93,44 +102,41 @@ export default function ResumePage() {
     }));
   };
 
+  // PDF generation
   const generateResume = async () => {
     const pdf = new jsPDF();
     let yPosition = 20;
 
-    // Add image if provided
     if (formData.image) {
       const reader = new FileReader();
       reader.onload = function(event) {
         if (event.target && typeof event.target.result === 'string') {
           pdf.addImage(event.target.result, 'JPEG', 160, 10, 40, 40);
-          
-          // Continue with the rest of the PDF generation
           addContentToPDF();
         }
       };
       reader.readAsDataURL(formData.image);
     } else {
-      // If no image, proceed with PDF generation
       addContentToPDF();
     }
 
     function addContentToPDF() {
-      // Add full name and profession
+      // Header section
       pdf.setFontSize(20);
       pdf.setFont("helvetica", "bold");
       pdf.text(formData.fullName, 20, yPosition);
       yPosition += 10;
+      
       pdf.setFontSize(16);
       pdf.setFont("helvetica", "normal");
       pdf.text(formData.profession, 20, yPosition);
       yPosition += 10;
 
-      // Add summary
+      // Summary and contact info
       pdf.setFontSize(12);
       pdf.text(formData.summary, 20, yPosition);
       yPosition += 10;
 
-      // Add contact info
       pdf.text(`Email: ${formData.email} | Phone: ${formData.phone}`, 20, yPosition);
       yPosition += 6;
       pdf.text(`Location: ${formData.location}`, 20, yPosition);
@@ -138,11 +144,12 @@ export default function ResumePage() {
       pdf.text(`LinkedIn: ${formData.linkedin} | Twitter: ${formData.twitter}`, 20, yPosition);
       yPosition += 10;
 
-      // Add Work Experience
+      // Work Experience section
       pdf.setFontSize(16);
       pdf.setFont("helvetica", "bold");
       pdf.text("Work Experience", 20, yPosition);
       yPosition += 8;
+      
       pdf.setFontSize(12);
       formData.experience.forEach((exp) => {
         pdf.text(`${exp.title} at ${exp.company}`, 20, yPosition);
@@ -153,20 +160,22 @@ export default function ResumePage() {
         yPosition += 8;
       });
 
-      // Add Skills
+      // Skills section
       pdf.setFontSize(16);
       pdf.setFont("helvetica", "bold");
       pdf.text("Skills & Competencies", 20, yPosition);
       yPosition += 8;
+      
       pdf.setFontSize(12);
       pdf.text(formData.skills.join(", "), 20, yPosition);
       yPosition += 10;
 
-      // Add Certificates
+      // Certificates section
       pdf.setFontSize(16);
       pdf.setFont("helvetica", "bold");
       pdf.text("Certificates", 20, yPosition);
       yPosition += 8;
+      
       formData.certificates.forEach((cert) => {
         pdf.text(`${cert.title} - ${cert.issuedBy}`, 20, yPosition);
         yPosition += 6;
@@ -174,11 +183,12 @@ export default function ResumePage() {
         yPosition += 8;
       });
 
-      // Add Education
+      // Education section
       pdf.setFontSize(16);
       pdf.setFont("helvetica", "bold");
       pdf.text("Education", 20, yPosition);
       yPosition += 8;
+      
       formData.education.forEach((edu) => {
         pdf.text(`${edu.degree}, ${edu.school}`, 20, yPosition);
         yPosition += 6;
@@ -186,11 +196,12 @@ export default function ResumePage() {
         yPosition += 8;
       });
 
-      // Add Languages
+      // Languages section
       pdf.setFontSize(16);
       pdf.setFont("helvetica", "bold");
       pdf.text("Languages", 20, yPosition);
       yPosition += 8;
+      
       formData.languages.forEach((lang) => {
         pdf.text(`${lang.language} - ${lang.proficiency}`, 20, yPosition);
         yPosition += 6;
@@ -201,7 +212,7 @@ export default function ResumePage() {
       setPdfUrl(url);
     }
 
-    // Store resume data in Firestore
+    // Store in Firestore
     try {
       const docRef = await addDoc(collection(db, "resumes"), {
         userEmail: formData.email,
@@ -228,357 +239,351 @@ export default function ResumePage() {
   return (
     <>
       <Navbar />
-      <div className=" bg-gradient-to-r from-purple-700 to-indigo-800 mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-4xl font-extrabold mb-6 text-center text-indigo-600">Create Your Resume</h1>
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-6 text-black">
-            {/* Resume Title */}
-            <div>
-              <label htmlFor="resumeTitle" className="block text-sm font-medium text-gray-700">Resume Title</label>
-              <input
-                type="text"
-                id="resumeTitle"
-                name="resumeTitle"
-                value={formData.resumeTitle}
-                onChange={(e) => handleChange(e)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                required
-              />
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mt-20 mx-auto"> {/* Changed from max-w-4xl to max-w-7xl */}
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="px-6 py-8 sm:p-10">
+              <h1 className="text-4xl font-bold text-center text-gray-900 mb-10">
+                Create Your Professional Resume
+              </h1>
 
-            {/* Personal Information */}
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Full Name</label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
-                onChange={(e) => handleChange(e)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="profession" className="block text-sm font-medium text-gray-700">Profession</label>
-              <input
-                type="text"
-                id="profession"
-                name="profession"
-                value={formData.profession}
-                onChange={(e) => handleChange(e)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="summary" className="block text-sm font-medium text-gray-700">Professional Summary</label>
-              <textarea
-                id="summary"
-                name="summary"
-                value={formData.summary}
-                onChange={(e) => handleChange(e)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                required
-              />
-            </div>
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
+                {/* Personal Details Section */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-6">Personal Details</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Resume Title
+                      </label>
+                      <input
+                        type="text"
+                        name="resumeTitle"
+                        value={formData.resumeTitle}
+                        onChange={handleChange}
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
 
-            {/* Image Upload */}
-            <div>
-              <label htmlFor="image" className="block text-sm font-medium text-gray-700">Profile Image</label>
-              <input
-                type="file"
-                id="image"
-                name="image"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="mt-1 block w-full"
-              />
-            </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleChange}
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
 
-            {/* Contact Information */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={(e) => handleChange(e)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={(e) => handleChange(e)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                value={formData.location}
-                onChange={(e) => handleChange(e)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                required
-              />
-            </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Profession
+                      </label>
+                      <input
+                        type="text"
+                        name="profession"
+                        value={formData.profession}
+                        onChange={handleChange}
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
 
-            {/* Work Experience */}
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Work Experience</h2>
-              {formData.experience.map((exp, index) => (
-                <div key={index} className="space-y-2 mb-4">
-                  <input
-                    type="text"
-                    name="title"
-                    value={exp.title}
-                    onChange={(e) => handleChange(e, index, "experience", "title")}
-                    placeholder="Job Title"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  <input
-                    type="text"
-                    name="company"
-                    value={exp.company}
-                    onChange={(e) => handleChange(e, index, "experience", "company")}
-                    placeholder="Company"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  <input
-                    type="text"
-                    name="dates"
-                    value={exp.dates}
-                    onChange={(e) => handleChange(e, index, "experience", "dates")}
-                    placeholder="Dates of Employment"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  <textarea
-                    name="description"
-                    value={exp.description}
-                    onChange={(e) => handleChange(e, index, "experience", "description")}
-                    placeholder="Description of Responsibilities"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  {index > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone
+                      </label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleChange}
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Professional Summary
+                    </label>
+                    <textarea
+                      name="summary"
+                      value={formData.summary}
+                      onChange={handleChange}
+                      rows={4}
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Profile Image
+                    </label>
+                    <input
+                      type="file"
+                      name="image"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Work Experience Section */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-semibold text-gray-900">Work Experience</h2>
                     <button
                       type="button"
-                      onClick={() => handleRemoveField("experience", index)}
-                      className="text-red-600"
+                      onClick={() => handleAddField("experience")}
+                      className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center"
                     >
-                      Remove
+                      + Add Experience
+                    </button>
+                  </div>
+
+                  {formData.experience.map((exp, index) => (
+                    <div key={index} className="mb-6 p-4 bg-white rounded-lg shadow-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          name="title"
+                          value={exp.title}
+                          onChange={(e) => handleChange(e, index, "experience", "title")}
+                          placeholder="Job Title"
+                          className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                        <input
+                          type="text"
+                          name="company"
+                          value={exp.company}
+                          onChange={(e) => handleChange(e, index, "experience", "company")}
+                          placeholder="Company"
+                          className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        name="dates"
+                        value={exp.dates}
+                        onChange={(e) => handleChange(e, index, "experience", "dates")}
+                        placeholder="Dates of Employment"
+                        className="w-full text-black mt-4 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                      <textarea
+                        name="description"
+                        value={exp.description}
+                        onChange={(e) => handleChange(e, index, "experience", "description")}
+                        placeholder="Description of Responsibilities"
+                        className="w-full text-black mt-4 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        rows={3}
+                      />
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveField("experience", index)}
+                          className="mt-4 text-red-600 hover:text-red-800"
+                        >
+                          Remove Experience
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Skills Section */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-semibold text-gray-900">Skills</h2>
+                    <button
+                      type="button"
+                      onClick={() => handleAddField("skills")}
+                      className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center"
+                    >
+                      + Add Skill
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {formData.skills.map((skill, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={skill}
+                          onChange={(e) => handleChange(e, index, "skills")}
+                          placeholder="Skill"
+                          className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                        {index > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveField("skills", index)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Education Section */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-semibold text-gray-900">Education</h2>
+                    <button
+                      type="button"
+                      onClick={() => handleAddField("education")}
+                      className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center"
+                    >
+                      + Add Education
+                    </button>
+                  </div>
+
+                  {formData.education.map((edu, index) => (
+                    <div key={index} className="mb-6 p-4 bg-white rounded-lg shadow-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          name="degree"
+                          value={edu.degree}
+                          onChange={(e) => handleChange(e, index, "education", "degree")}
+                          placeholder="Degree"
+                          className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                        <input
+                          type="text"
+                          name="school"
+                          value={edu.school}
+                          onChange={(e) => handleChange(e, index, "education", "school")}
+                          placeholder="School"
+                          className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        name="dates"
+                        value={edu.dates}
+                        onChange={(e) => handleChange(e, index, "education", "dates")}
+                        placeholder="Dates Attended"
+                        className="w-full text-black mt-4 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveField("education", index)}
+                          className="mt-4 text-red-600 hover:text-red-800"
+                        >
+                          Remove Education
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Languages Section */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-semibold text-gray-900">Languages</h2>
+                    <button
+                      type="button"
+                      onClick={() => handleAddField("languages")}
+                      className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center"
+                    >
+                      + Add Language
+                    </button>
+                  </div>
+
+                  {formData.languages.map((lang, index) => (
+                    <div key={index} className="mb-6 p-4 bg-white rounded-lg shadow-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          name="language"
+                          value={lang.language}
+                          onChange={(e) => handleChange(e, index, "languages", "language")}
+                          placeholder="Language"
+                          className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                        <input
+                          type="text"
+                          name="proficiency"
+                          value={lang.proficiency}
+                          onChange={(e) => handleChange(e, index, "languages", "proficiency")}
+                          placeholder="Proficiency"
+                          className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveField("languages", index)}
+                          className="mt-4 text-red-600 hover:text-red-800"
+                        >
+                          Remove Language
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={generateResume}
+                    className="px-8 py-3 bg-indigo-600 text-white text-lg font-medium rounded-xl hover:bg-indigo-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Generate Resume
+                  </button>
+                  {pdfUrl && (
+                    <button
+                      onClick={handleDownload}
+                      className="px-8 py-3 bg-green-600 text-white text-lg font-medium rounded-xl hover:bg-green-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      Download Resume
                     </button>
                   )}
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => handleAddField("experience")}
-                className="text-indigo-600"
-              >
-                Add Experience
-              </button>
+              </form>
             </div>
-
-            {/* Skills */}
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Skills</h2>
-              {formData.skills.map((skill, index) => (
-                <div key={index} className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={skill}
-                    onChange={(e) => handleChange(e, index, "skills")}
-                    placeholder="Skill"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  {index > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveField("skills", index)}
-                      className="text-red-600"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => handleAddField("skills")}
-                className="text-indigo-600"
-              >
-                Add Skill
-              </button>
-            </div>
-
-            {/* Certificates */}
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Certificates</h2>
-              {formData.certificates.map((cert, index) => (
-                <div key={index} className="space-y-2 mb-4">
-                  <input
-                    type="text"
-                    name="title"
-                    value={cert.title}
-                    onChange={(e) => handleChange(e, index, "certificates", "title")}
-                    placeholder="Certificate Title"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  <input
-                    type="text"
-                    name="issuedBy"
-                    value={cert.issuedBy}
-                    onChange={(e) => handleChange(e, index, "certificates", "issuedBy")}
-                    placeholder="Issued By"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  <input
-                    type="text"
-                    name="date"
-                    value={cert.date}
-                    onChange={(e) => handleChange(e, index, "certificates", "date")}
-                    placeholder="Date Issued"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  {index > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveField("certificates", index)}
-                      className="text-red-600"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => handleAddField("certificates")}
-                className="text-indigo-600"
-              >
-                Add Certificate
-              </button>
-            </div>
-
-            {/* Education */}
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Education</h2>
-              {formData.education.map((edu, index) => (
-                <div key={index} className="space-y-2 mb-4">
-                  <input
-                    type="text"
-                    name="degree"
-                    value={edu.degree}
-                    onChange={(e) => handleChange(e, index, "education", "degree")}
-                    placeholder="Degree"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  <input
-                    type="text"
-                    name="school"
-                    value={edu.school}
-                    onChange={(e) => handleChange(e, index, "education", "school")}
-                    placeholder="School"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  <input
-                    type="text"
-                    name="dates"
-                    value={edu.dates}
-                    onChange={(e) => handleChange(e, index, "education", "dates")}
-                    placeholder="Dates Attended"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  {index > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveField("education", index)}
-                      className="text-red-600"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => handleAddField("education")}
-                className="text-indigo-600"
-              >
-                Add Education
-              </button>
-            </div>
-
-            {/* Languages */}
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Languages</h2>
-              {formData.languages.map((lang, index) => (
-                <div key={index} className="space-y-2 mb-4">
-                  <input
-                    type="text"
-                    name="language"
-                    value={lang.language}
-                    onChange={(e) => handleChange(e, index, "languages", "language")}
-                    placeholder="Language"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  <input
-                    type="text"
-                    name="proficiency"
-                    value={lang.proficiency}
-                    onChange={(e) => handleChange(e, index, "languages", "proficiency")}
-                    placeholder="Proficiency"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                  {index > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveField("languages", index)}
-                      className="text-red-600"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => handleAddField("languages")}
-                className="text-indigo-600"
-              >
-                Add Language
-              </button>
-            </div>
-
-            {/* Buttons */}
-            <div className="mt-6 text-center">
-              <button
-                onClick={generateResume}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-              >
-                Generate Resume
-              </button>
-              {pdfUrl && (
-                <button
-                  onClick={handleDownload}
-                  className="ml-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                >
-                  Download Resume
-                </button>
-              )}
-            </div>
-          </form>
+          </div>
         </div>
       </div>
       <Footer />

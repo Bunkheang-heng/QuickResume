@@ -6,6 +6,8 @@ import Navbar from '@/components/nav';
 import Footer from '@/components/footer';
 import { motion } from 'framer-motion';
 import { FaLinkedin, FaTwitter, FaGithub } from 'react-icons/fa';
+import Paro from "../../../public/paro.jpg" 
+import Seng from "../../../public/kimseng.jpg" 
 
 export default function About() {
   const teamMembers = [
@@ -30,16 +32,16 @@ export default function About() {
     { 
       name: "YUTH Paro", 
       role: "AI Specialist", 
-      image: "https://media4.giphy.com/media/5thaAuHCJwhLbKwu94/200w.gif?cid=82a1493bvbzqu1y9ua4nb6n7zgavo5wzd685m417gcht4usv&ep=v1_gifs_related&rid=200w.gif&ct=g",
+      image: Paro,
       linkedin: "https://linkedin.com/in/yuthparo",
       github: "https://github.com/yuthparo",
       twitter: "https://twitter.com/yuthparo",
       bio: "AI enthusiast specializing in machine learning and natural language processing."
     },
     { 
-      name: "Sok Sopheak", 
+      name: "Srun Kim Seng", 
       role: "Content Strategist", 
-      image: "https://media4.giphy.com/media/L3FFqWhrUcfFLB3hLZ/200w.gif?cid=6c09b95287teunm13hw3ethh1ztnata1a2u1tk6vh9mpzjkt&ep=v1_gifs_search&rid=200w.gif&ct=g",
+      image: Seng,
       linkedin: "https://linkedin.com/in/soksopheak",
       github: "https://github.com/soksopheak",
       twitter: "https://twitter.com/soksopheak",

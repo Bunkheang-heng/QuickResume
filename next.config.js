@@ -10,7 +10,7 @@ const nextConfig = {
         'd25zcttzf44i59.cloudfront.net','www.myperfectresume.com',
         'www.myperfectresume.com/wp-content/uploads/2023/12',
         'scontent-sin6-2.xx.fbcdn.net','scontent-sin6-1.xx.fbcdn.net', 'media4.giphy.com',
-        'lh5.googleusercontent.com','pbs.twimg.com','images.mubicdn.net']
+        'lh5.googleusercontent.com','pbs.twimg.com','images.mubicdn.net','web.telegram.org','scontent-sin6-1.xx.fbcdn.net']
     },
   }
   

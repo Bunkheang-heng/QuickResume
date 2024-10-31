@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaUser, FaEnvelope, FaPhone, FaGraduationCap, FaBriefcase, FaPlus, FaTrash, FaDownload, FaSpinner } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaGraduationCap, FaBriefcase, FaPlus, FaTrash, FaDownload, FaSpinner, FaMapMarkerAlt } from 'react-icons/fa';
 import Navbar from '@/components/nav';
 import Footer from '@/components/footer';
 import { jsPDF } from 'jspdf';
@@ -33,6 +33,7 @@ export default function FormPage() {
     fullName: '',
     email: '',
     phone: '',
+    address: '',
     education: [{ school: '', major: '', graduationDate: '' }],
     experience: [{ company: '', position: '', startDate: '', endDate: '', description: '' }],
     skills: [''],
@@ -54,6 +55,7 @@ export default function FormPage() {
         
         Email: ${formData.email}
         Phone: ${formData.phone}
+        Address: ${formData.address}
         Education: ${formData.education.map(edu => `${edu.school}, ${edu.major}, Graduation: ${edu.graduationDate}`).join('\n')}
         Work Experience: ${formData.experience.map(exp => `${exp.company}, ${exp.position}, ${exp.startDate} - ${exp.endDate}\n${exp.description}`).join('\n\n')}
         Skills: ${formData.skills.join(', ')}`;
@@ -110,7 +112,6 @@ export default function FormPage() {
       const url = URL.createObjectURL(pdfBlob);
       setPdfUrl(url);
 
-      // Store resume information in Firestore
       await addDoc(collection(db, 'resumes'), {
         userEmail: userEmail,
         resumeTitle: formData.fullName + "'s Resume",
@@ -181,102 +182,115 @@ export default function FormPage() {
   };
 
   if (!isLoggedIn) {
-    return null; // Or you can return a loading indicator
+    return null;
   }
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-r from-purple-700 to-indigo-800 text-white">
-        <div className="max-w-4xl mx-auto bg-gray-50 rounded-lg shadow-2xl overflow-hidden my-12 p-8">
-          <h2 className="text-4xl font-bold mb-6 text-center text-gray-900">Create Your Professional Resume</h2>
-          <p className="text-lg text-gray-600 text-center mb-8">
-            Fill in your details and generate a beautifully designed resume.
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="fullName" className="block text-lg font-semibold text-gray-700">
-                  <FaUser className="inline mr-2" /> Full Name
-                </label>
-                <input
-                  type="text"
-                  name="fullName"
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => handleChange(e, undefined, 'fullName')}
-                  className="mt-1 w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  required
-                />
+      <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900">Create Your Professional Resume</h2>
+            <p className="mt-2 text-lg text-gray-600">
+              Build a standout resume that captures your professional journey
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-12">
+            {/* Personal Information Section */}
+            <div className="bg-gray-50 p-8 rounded-lg shadow-sm">
+              <div className="space-y-6">
+                <div className="form-group">
+                  <label className="flex items-center text-lg font-semibold text-gray-700 mb-4">
+                    <FaUser className="mr-2 text-gray-600" /> Personal Information
+                  </label>
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={(e) => handleChange(e, undefined, 'fullName')}
+                      placeholder="Full Name"
+                      className="w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                      required
+                    />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={(e) => handleChange(e, undefined, 'email')}
+                      placeholder="Email Address"
+                      className="w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                      required
+                    />
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={(e) => handleChange(e, undefined, 'phone')}
+                      placeholder="Phone Number"
+                      className="w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.address}
+                      onChange={(e) => handleChange(e, undefined, 'address')}
+                      placeholder="Your Address"
+                      className="w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label htmlFor="email" className="block text-lg font-semibold text-gray-700">
-                  <FaEnvelope className="inline mr-2" /> Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={(e) => handleChange(e, undefined, 'email')}
-                  className="mt-1 w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="phone" className="block text-lg font-semibold text-gray-700">
-                  <FaPhone className="inline mr-2" /> Phone
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleChange(e, undefined, 'phone')}
-                  className="mt-1 w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-lg font-semibold text-gray-700">
-                  <FaGraduationCap className="inline mr-2" /> Education
+            </div>
+
+            {/* Education Section */}
+            <div className="bg-gray-50 p-8 rounded-lg shadow-sm">
+              <div className="form-group">
+                <label className="flex items-center text-lg font-semibold text-gray-700 mb-4">
+                  <FaGraduationCap className="mr-2 text-gray-600" /> Education
                 </label>
                 {formData.education.map((edu, index) => (
-                  <div key={index} className="space-y-2">
-                    <input
-                      type="text"
-                      name="school"
-                      value={edu.school}
-                      onChange={(e) => handleChange(e, index, 'education')}
-                      placeholder="School"
-                      className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      required
-                    />
-                    <input
-                      type="text"
-                      name="major"
-                      value={edu.major}
-                      onChange={(e) => handleChange(e, index, 'education')}
-                      placeholder="Major"
-                      className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      required
-                    />
-                    <input
-                      type="text"
-                      name="graduationDate"
-                      value={edu.graduationDate}
-                      onChange={(e) => handleChange(e, index, 'education')}
-                      placeholder="Graduation Date"
-                      className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      required
-                    />
+                  <div key={index} className="p-4 bg-white rounded-lg mb-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <input
+                        type="text"
+                        name="school"
+                        value={edu.school}
+                        onChange={(e) => handleChange(e, index, 'education')}
+                        placeholder="Institution Name"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                        required
+                      />
+                      <input
+                        type="text"
+                        name="major"
+                        value={edu.major}
+                        onChange={(e) => handleChange(e, index, 'education')}
+                        placeholder="Field of Study"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                        required
+                      />
+                      <input
+                        type="text"
+                        name="graduationDate"
+                        value={edu.graduationDate}
+                        onChange={(e) => handleChange(e, index, 'education')}
+                        placeholder="Graduation Date"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                        required
+                      />
+                    </div>
                     {index > 0 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveField('education', index)}
-                        className="text-red-600"
+                        className="mt-2 text-red-600 hover:text-red-800 transition-colors duration-200"
                       >
-                        <FaTrash className="inline mr-1" /> Remove Education
+                        <FaTrash className="inline mr-1" /> Remove
                       </button>
                     )}
                   </div>
@@ -284,43 +298,47 @@ export default function FormPage() {
                 <button
                   type="button"
                   onClick={() => handleAddField('education')}
-                  className="mt-2 text-purple-600 font-semibold"
+                  className="flex items-center text-gray-600 hover:text-gray-800 font-semibold transition-colors duration-200"
                 >
-                  <FaPlus className="inline mr-1" /> Add Education
+                  <FaPlus className="mr-1" /> Add Education
                 </button>
               </div>
-              <div>
-                <label className="block text-lg font-semibold text-gray-700">
-                  <FaBriefcase className="inline mr-2" /> Work Experience
+            </div>
+
+            {/* Work Experience Section */}
+            <div className="bg-gray-50 p-8 rounded-lg shadow-sm">
+              <div className="space-y-6">
+                <label className="flex items-center text-lg font-semibold text-gray-700 mb-4">
+                  <FaBriefcase className="mr-2 text-gray-600" /> Work Experience
                 </label>
                 {formData.experience.map((exp, index) => (
-                  <div key={index} className="space-y-2">
-                    <input
-                      type="text"
-                      name="company"
-                      value={exp.company}
-                      onChange={(e) => handleChange(e, index, 'experience')}
-                      placeholder="Company"
-                      className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      required
-                    />
-                    <input
-                      type="text"
-                      name="position"
-                      value={exp.position}
-                      onChange={(e) => handleChange(e, index, 'experience')}
-                      placeholder="Position"
-                      className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      required
-                    />
-                    <div className="flex space-x-2">
+                  <div key={index} className="p-6 bg-white rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input
+                        type="text"
+                        name="company"
+                        value={exp.company}
+                        onChange={(e) => handleChange(e, index, 'experience')}
+                        placeholder="Company Name"
+                        className="w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                        required
+                      />
+                      <input
+                        type="text"
+                        name="position"
+                        value={exp.position}
+                        onChange={(e) => handleChange(e, index, 'experience')}
+                        placeholder="Position Title"
+                        className="w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                        required
+                      />
                       <input
                         type="text"
                         name="startDate"
                         value={exp.startDate}
                         onChange={(e) => handleChange(e, index, 'experience')}
                         placeholder="Start Date"
-                        className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        className="w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
                         required
                       />
                       <input
@@ -329,7 +347,7 @@ export default function FormPage() {
                         value={exp.endDate}
                         onChange={(e) => handleChange(e, index, 'experience')}
                         placeholder="End Date"
-                        className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        className="w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
                         required
                       />
                     </div>
@@ -337,15 +355,15 @@ export default function FormPage() {
                       name="description"
                       value={exp.description}
                       onChange={(e) => handleChange(e, index, 'experience')}
-                      placeholder="Job Description"
-                      className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      placeholder="Describe your responsibilities and achievements..."
+                      className="mt-4 w-full text-black px-4 py-3 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200 h-32"
                       required
                     />
                     {index > 0 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveField('experience', index)}
-                        className="text-red-600"
+                        className="mt-2 text-red-600 hover:text-red-800 transition-colors duration-200"
                       >
                         <FaTrash className="inline mr-1" /> Remove Experience
                       </button>
@@ -355,71 +373,79 @@ export default function FormPage() {
                 <button
                   type="button"
                   onClick={() => handleAddField('experience')}
-                  className="mt-2 text-purple-600 font-semibold"
+                  className="flex items-center text-gray-600 hover:text-gray-800 font-semibold transition-colors duration-200"
                 >
-                  <FaPlus className="inline mr-1" /> Add Experience
-                </button>
-              </div>
-              <div>
-                <label className="block text-lg font-semibold text-gray-700">
-                  Skills
-                </label>
-                {formData.skills.map((skill, index) => (
-                  <div key={index} className="flex items-center mt-2">
-                    <input
-                      type="text"
-                      value={skill}
-                      onChange={(e) => handleChange(e, index, 'skills')}
-                      className="w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      placeholder="Enter a skill"
-                      required
-                    />
-                    {index > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveField('skills', index)}
-                        className="ml-2 text-red-600"
-                      >
-                        <FaTrash />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => handleAddField('skills')}
-                  className="mt-2 text-purple-600 font-semibold"
-                >
-                  <FaPlus className="inline mr-1" /> Add Skill
+                  <FaPlus className="mr-1" /> Add Experience
                 </button>
               </div>
             </div>
-            <div className="mt-8">
+
+            {/* Skills Section */}
+            <div className="bg-gray-50 p-8 rounded-lg shadow-sm">
+              <div className="space-y-4">
+                <label className="block text-lg font-semibold text-gray-700 mb-4">Skills</label>
+                <div className="flex flex-wrap gap-2">
+                  {formData.skills.map((skill, index) => (
+                    <div key={index} className="flex items-center">
+                      <input
+                        type="text"
+                        value={skill}
+                        onChange={(e) => handleChange(e, index, 'skills')}
+                        className="px-4 text-black py-2 rounded-lg border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all duration-200"
+                        placeholder="Enter a skill"
+                        required
+                      />
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveField('skills', index)}
+                          className="ml-2 text-red-600 hover:text-red-800"
+                        >
+                          <FaTrash />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAddField('skills')}
+                  className="flex items-center text-gray-600 hover:text-gray-800 font-semibold transition-colors duration-200"
+                >
+                  <FaPlus className="mr-1" /> Add Skill
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-6">
               <button
                 type="submit"
-                className="w-full py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-purple-600 hover:bg-purple-700 transition duration-300"
+                className="w-full bg-gray-900 text-white py-4 px-6 rounded-lg font-bold text-lg hover:bg-gray-800 transition-all duration-300 flex items-center justify-center"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
                     <FaSpinner className="animate-spin mr-2" />
-                    Generating...
+                    Creating Your Resume...
                   </>
                 ) : (
-                  'Generate Resume'
+                  'Generate Professional Resume'
                 )}
               </button>
             </div>
           </form>
+
           {generatedResume && (
-            <div className="mt-8">
-              <h3 className="text-2xl font-semibold text-gray-900">Generated Resume</h3>
-              <pre className="whitespace-pre-wrap mt-4 p-4 bg-gray-100 rounded-lg text-gray-800">{generatedResume}</pre>
+            <div className="mt-12">
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Generated Resume</h3>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <pre className="whitespace-pre-wrap text-gray-700 font-sans">{generatedResume}</pre>
+              </div>
               <button
                 onClick={handleDownload}
-                className="mt-4 flex items-center justify-center px-4 py-2 border border-transparent text-lg font-bold rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition duration-300"
+                className="mt-6 flex items-center justify-center w-full bg-gray-900 text-white py-3 px-6 rounded-lg font-bold hover:bg-gray-800 transition-all duration-300"
               >
-                <FaDownload className="mr-2" /> Download PDF
+                <FaDownload className="mr-2" /> Download PDF Version
               </button>
             </div>
           )}

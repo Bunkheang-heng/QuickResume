@@ -22,7 +22,7 @@ const HomePage = () => {
         <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-32 px-4">
           <div className="max-w-6xl mx-auto">
             <motion.div {...fadeIn} className="text-center">
-              <h1 className="text-6xl font-extrabold mb-6 leading-tight">
+              <h1 className="text-6xl font-extrabold mb-6 leading-tight text-white">
                 Craft Your Career Story with Precision
               </h1>
               <p className="text-2xl mb-10 max-w-3xl mx-auto">
@@ -99,7 +99,7 @@ const HomePage = () => {
             <p className="text-xl mb-10">
               Join thousands of professionals who've accelerated their careers with QuickResume.
             </p>
-            <Link href="/form2" className="inline-block bg-white text-blue-600 py-4 px-10 rounded-full font-bold text-lg transition duration-300 ease-in-out hover:bg-blue-50 hover:shadow-lg transform hover:-translate-y-1">
+            <Link href="/features" className="inline-block bg-white text-blue-600 py-4 px-10 rounded-full font-bold text-lg transition duration-300 ease-in-out hover:bg-blue-50 hover:shadow-lg transform hover:-translate-y-1">
               Get Started for Free
             </Link>
           </div>
