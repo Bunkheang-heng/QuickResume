@@ -7,7 +7,7 @@ import { FaBars, FaTimes} from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import Logo from "../../public/logo.png"
+import Logo from "../../public/logo.jpg"
 
 type NavLink = {
   id: number;
