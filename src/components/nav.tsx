@@ -7,7 +7,6 @@ import { FaBars, FaTimes} from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import Logo from "../../public/logo.jpg"
 
 type NavLink = {
   id: number;
@@ -61,13 +60,6 @@ const Navbar: React.FC = () => {
             className="flex-shrink-0 flex items-center"
           >
             <Link href="/" className="flex items-center space-x-2">
-              <Image 
-                src={Logo}
-                alt="QuickResume Logo"
-                width={40}
-                height={40}
-                className="rounded-lg"
-              />
               <span className="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 QuickResume
               </span>
