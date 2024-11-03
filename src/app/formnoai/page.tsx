@@ -93,90 +93,106 @@ export default function FormNoAIPage() {
   const generateResume = () => {
     const pdf = new jsPDF();
     let yPosition = 20;
+  
 
-    // Add name
-    pdf.setFontSize(20);
+    const addSectionHeader = (text: string) => {
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(text, 20, yPosition);
+      yPosition += 2;
+      pdf.setLineWidth(0.3);
+      pdf.line(20, yPosition, 190, yPosition); 
+      yPosition += 8;
+    };
+  
+    const addIndentedText = (text: string, fontSize = 12) => {
+      pdf.setFontSize(fontSize);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(text, 25, yPosition); 
+      yPosition += 6;
+    };
+  
+    // Add Name
+    pdf.setFontSize(22);
     pdf.setFont("helvetica", "bold");
-    pdf.text(formData.fullName, 20, yPosition);
-    yPosition += 10;
-
-    // Add contact info
-    pdf.setFontSize(12);
+    pdf.text(formData.fullName || "Name Not Provided", 20, yPosition);
+    yPosition += 12;
+  
+    // Add Contact Info
+    pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
-    pdf.text(`Email: ${formData.email} | Phone: ${formData.phone}`, 20, yPosition);
-    yPosition += 10;
-
-    // Add social media
-    if (formData.github || formData.linkedin) {
-      pdf.text(`Social: ${formData.github ? `GitHub: ${formData.github}` : ''} ${formData.linkedin ? `| LinkedIn: ${formData.linkedin}` : ''}`, 20, yPosition);
+    pdf.text(`Email: ${formData.email || "N/A"} | Phone: ${formData.phone || "N/A"}`, 20, yPosition);
+    yPosition += 6;
+  
+    // Add Social Media Links if available
+    const socialMediaText = [];
+    if (formData.github) socialMediaText.push(`GitHub: ${formData.github}`);
+    if (formData.linkedin) socialMediaText.push(`LinkedIn: ${formData.linkedin}`);
+    if (socialMediaText.length) {
+      pdf.text(`Social: ${socialMediaText.join(" | ")}`, 20, yPosition);
+      yPosition += 6;
+    }
+  
+    // Add Address if available
+    const { street, city, state, zip } = formData.address || {};
+    if (street || city || state || zip) {
+      pdf.text(`Address: ${street || ""} ${city || ""} ${state || ""} ${zip || ""}`, 20, yPosition);
       yPosition += 10;
     }
-
-    // Add address
-    const { street, city, state, zip } = formData.address;
-    pdf.text(`Address: ${street}, ${city}, ${state}, ${zip}`, 20, yPosition);
-    yPosition += 10;
-
-    // Add education
-    pdf.setFontSize(16);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Education", 20, yPosition);
-    yPosition += 8;
-    pdf.setFontSize(12);
-    pdf.setFont("helvetica", "normal");
-    formData.education.forEach((edu) => {
-      pdf.text(`${edu.school} - ${edu.major}`, 20, yPosition);
+  
+    // Add Education Section
+    if (formData.education && formData.education.length > 0) {
+      addSectionHeader("Education");
+      formData.education.forEach((edu) => {
+        addIndentedText(`${edu.school || "School Not Provided"} - ${edu.major || "Major Not Provided"}`, 12);
+        addIndentedText(`Graduation: ${edu.graduationDate || "Date Not Provided"}`, 10);
+        yPosition += 6;
+      });
       yPosition += 6;
-      pdf.text(`Graduation: ${edu.graduationDate}`, 20, yPosition);
+    }
+  
+    // Add Experience Section
+    if (formData.experience && formData.experience.length > 0) {
+      addSectionHeader("Experience");
+      formData.experience.forEach((exp) => {
+        addIndentedText(`${exp.company || "Company Not Provided"} - ${exp.position || "Position Not Provided"}`, 12);
+        addIndentedText(`${exp.startDate || "Start Date"} - ${exp.endDate || "End Date"}`, 10);
+        addIndentedText(exp.description || "Description Not Provided", 10);
+        yPosition += 8;
+      });
+      yPosition += 6;
+    }
+  
+    // Add Skills Section if available
+    if (formData.skills && formData.skills.length > 0) {
+      addSectionHeader("Skills");
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(formData.skills.join(", "), 25, yPosition);
       yPosition += 8;
-    });
-
-    // Add experience
-    yPosition += 5;
-    pdf.setFontSize(16);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Experience", 20, yPosition);
-    yPosition += 8;
-    pdf.setFontSize(12);
-    pdf.setFont("helvetica", "normal");
-    formData.experience.forEach((exp) => {
-      pdf.text(`${exp.company} - ${exp.position}`, 20, yPosition);
-      yPosition += 6;
-      pdf.text(`${exp.startDate} - ${exp.endDate}`, 20, yPosition);
-      yPosition += 6;
-      pdf.text(exp.description, 20, yPosition);
-      yPosition += 8;
-    });
-
-    // Add skills
-    yPosition += 5;
-    pdf.setFontSize(16);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Skills", 20, yPosition);
-    yPosition += 8;
-    pdf.setFontSize(12);
-    pdf.setFont("helvetica", "normal");
-    pdf.text(formData.skills.join(", "), 20, yPosition);
-
+    }
+  
+    // Generate PDF Blob and set URL for download
     const pdfBlob = pdf.output('blob');
     const url = URL.createObjectURL(pdfBlob);
     setPdfUrl(url);
   };
-
+  
   const handleDownload = () => {
     if (pdfUrl) {
       const link = document.createElement('a');
       link.href = pdfUrl;
-      link.download = `${formData.fullName.replace(/\s+/g, '_')}_resume.pdf`;
+      link.download = `${formData.fullName ? formData.fullName.replace(/\s+/g, '_') : "Resume"}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
   };
-
+  
   if (!isLoggedIn) {
     return null;
   }
+  
 
   return (
     <>
@@ -204,7 +220,7 @@ export default function FormNoAIPage() {
                       name="fullName"
                       value={formData.fullName}
                       onChange={(e) => handleChange(e, undefined, '')}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       required
                     />
                   </div>
@@ -218,7 +234,7 @@ export default function FormNoAIPage() {
                       name="email"
                       value={formData.email}
                       onChange={(e) => handleChange(e, undefined, '')}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       required
                     />
                   </div>
@@ -232,7 +248,7 @@ export default function FormNoAIPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={(e) => handleChange(e, undefined, '')}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       required
                     />
                   </div>
@@ -247,7 +263,7 @@ export default function FormNoAIPage() {
                       value={formData.github}
                       onChange={(e) => handleChange(e, undefined, '')}
                       placeholder="https://github.com/username"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                     />
                   </div>
                   <div>
@@ -261,7 +277,7 @@ export default function FormNoAIPage() {
                       value={formData.linkedin}
                       onChange={(e) => handleChange(e, undefined, '')}
                       placeholder="https://linkedin.com/in/username"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                     />
                   </div>
                 </div>
@@ -278,7 +294,7 @@ export default function FormNoAIPage() {
                       value={formData.address.street}
                       onChange={(e) => handleChange(e, undefined, 'address')}
                       placeholder="Street Address"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                     />
                   </div>
                   <div>
@@ -288,7 +304,7 @@ export default function FormNoAIPage() {
                       value={formData.address.city}
                       onChange={(e) => handleChange(e, undefined, 'address')}
                       placeholder="City"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -298,7 +314,7 @@ export default function FormNoAIPage() {
                       value={formData.address.state}
                       onChange={(e) => handleChange(e, undefined, 'address')}
                       placeholder="State"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                     />
                     <input
                       type="text"
@@ -306,7 +322,7 @@ export default function FormNoAIPage() {
                       value={formData.address.zip}
                       onChange={(e) => handleChange(e, undefined, 'address')}
                       placeholder="ZIP Code"
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                      className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                     />
                   </div>
                 </div>
@@ -336,7 +352,7 @@ export default function FormNoAIPage() {
                         value={edu.school}
                         onChange={(e) => handleChange(e, index, 'education')}
                         placeholder="School/University"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       />
                       <input
                         type="text"
@@ -344,7 +360,7 @@ export default function FormNoAIPage() {
                         value={edu.major}
                         onChange={(e) => handleChange(e, index, 'education')}
                         placeholder="Major/Field of Study"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       />
                       <input
                         type="text"
@@ -352,7 +368,7 @@ export default function FormNoAIPage() {
                         value={edu.graduationDate}
                         onChange={(e) => handleChange(e, index, 'education')}
                         placeholder="Graduation Date"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       />
                       {index > 0 && (
                         <button 
@@ -392,7 +408,7 @@ export default function FormNoAIPage() {
                         value={exp.company}
                         onChange={(e) => handleChange(e, index, 'experience')}
                         placeholder="Company Name"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       />
                       <input
                         type="text"
@@ -400,7 +416,7 @@ export default function FormNoAIPage() {
                         value={exp.position}
                         onChange={(e) => handleChange(e, index, 'experience')}
                         placeholder="Position/Title"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       />
                       <input
                         type="text"
@@ -408,7 +424,7 @@ export default function FormNoAIPage() {
                         value={exp.startDate}
                         onChange={(e) => handleChange(e, index, 'experience')}
                         placeholder="Start Date"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       />
                       <input
                         type="text"
@@ -416,7 +432,7 @@ export default function FormNoAIPage() {
                         value={exp.endDate}
                         onChange={(e) => handleChange(e, index, 'experience')}
                         placeholder="End Date"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       />
                       <div className="col-span-2">
                         <textarea
@@ -424,7 +440,7 @@ export default function FormNoAIPage() {
                           value={exp.description}
                           onChange={(e) => handleChange(e, index, 'experience')}
                           placeholder="Describe your responsibilities and achievements..."
-                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 h-32"
+                          className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 h-32"
                         />
                       </div>
                       {index > 0 && (
@@ -462,7 +478,7 @@ export default function FormNoAIPage() {
                         value={skill}
                         onChange={(e) => handleChange(e, index, 'skills')}
                         placeholder="Enter a skill"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                        className="w-full text-black px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
                       />
                       {index > 0 && (
                         <button 

@@ -3,7 +3,7 @@
 import React from 'react';
 import Navbar from '@/components/nav';
 import Footer from '@/components/footer';
-import { FaFileAlt, FaRobot, FaDownload, FaEdit, FaPencilAlt } from 'react-icons/fa';
+import { FaFileAlt, FaRobot, FaDownload, FaEdit, FaPencilAlt, FaFileContract } from 'react-icons/fa';
 import Link from 'next/link';
 
 const FeaturesPage: React.FC = () => {
@@ -22,6 +22,13 @@ const FeaturesPage: React.FC = () => {
       link: '/formnoai',
       buttonText: 'Try Manual Generation',
     },
+    {
+      icon: <FaFileContract className="text-4xl mb-4 text-gray-400" />,
+      title: 'Template Selection',
+      description: 'Choose from a variety of professional resume templates to make your resume stand out. Customize layouts and styles to match your preferences.',
+      comingSoon: true,
+      buttonText: 'Coming Soon',
+    },
   ];
 
   return (
@@ -36,12 +43,16 @@ const FeaturesPage: React.FC = () => {
                 {feature.icon}
                 <h2 className="text-xl font-semibold mb-2">{feature.title}</h2>
                 <p className="text-gray-600 mb-4">{feature.description}</p>
-                {feature.link && (
+                {feature.link ? (
                   <Link href={feature.link}>
                     <button className="mt-auto bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300">
                       {feature.buttonText}
                     </button>
                   </Link>
+                ) : feature.comingSoon && (
+                  <button disabled className="mt-auto bg-gray-400 text-white py-2 px-4 rounded-md cursor-not-allowed">
+                    {feature.buttonText}
+                  </button>
                 )}
               </div>
             ))}

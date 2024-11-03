@@ -78,39 +78,47 @@ export default function FormPage() {
       const resumeText = data.candidates[0].content.parts[0].text;
       setGeneratedResume(resumeText);
       
-      const pdf = new jsPDF();
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      pdf.setFont("helvetica");
+      
       const lines = resumeText.split('\n');
-      let yPosition = 20;
+      let yPosition = 20;  // Start position for the first line
       
       lines.forEach((line: string) => {
         if (line.trim().endsWith(':')) {
-          pdf.setFont("helvetica", "bold");
           pdf.setFontSize(14);
+          pdf.setFont("helvetica", "bold");
           pdf.text(line, 20, yPosition);
-          yPosition += 7;
+          yPosition += 7;  // Space before the next section
         } else if (line.includes('|')) {
           const [content, date] = line.split('|');
-          pdf.setFont("helvetica", "normal");
           pdf.setFontSize(12);
+          pdf.setFont("helvetica", "normal");
           pdf.text(content.trim(), 20, yPosition);
           pdf.text(date.trim(), 190, yPosition, { align: 'right' });
-          yPosition += 6;
+          yPosition += 6;  // Regular line spacing
         } else {
-          pdf.setFont("helvetica", "normal");
           pdf.setFontSize(12);
+          pdf.setFont("helvetica", "normal");
           pdf.text(line, 20, yPosition);
-          yPosition += 6;
+          yPosition += 6;  // Regular line spacing
         }
-
-        if (yPosition > 280) {
+      
+        if (yPosition > 280) {  // Ensure there's room for footer or next section
           pdf.addPage();
           yPosition = 20;
         }
       });
-
+      
+      // Finalize PDF
       const pdfBlob = pdf.output('blob');
       const url = URL.createObjectURL(pdfBlob);
       setPdfUrl(url);
+      
 
       await addDoc(collection(db, 'resumes'), {
         userEmail: userEmail,
